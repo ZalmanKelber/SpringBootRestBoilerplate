@@ -46,7 +46,7 @@ public class SurveyControllerIT {
     }
 
     @Test
-    public void testRetrieveQuestion() {
+    public void testRetrieveQuestion() throws Exception {
         System.out.println("PORTPORT" + port);
 
         String url = getUrlForQuestion("Question1");
@@ -61,11 +61,7 @@ public class SurveyControllerIT {
         String expected = "{id:Question1,correctAnswer:Russia}";
         String actual = response.getBody();
 
-        try {
-            JSONAssert.assertEquals(expected, actual, false);
-        } catch (Exception ex) {
-            System.out.println("JSONAssert through exception: " + ex);
-        }
+        JSONAssert.assertEquals(expected, actual, false);
 
     }
 
@@ -86,7 +82,6 @@ public class SurveyControllerIT {
         );
 
         String actual = response.getHeaders().get(HttpHeaders.LOCATION).get(0);
-        System.out.println(actual);
         assert(actual.contains("/surveys/Survey1/questions"));
 
     }
