@@ -1,7 +1,10 @@
 package com.simpleSBApps.restboilerlate.controllers;
 
 import com.simpleSBApps.restboilerlate.Main;
+import com.simpleSBApps.restboilerlate.models.Question;
 import javafx.application.Application;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -22,14 +25,31 @@ public class SurveyControllerIT {
     @LocalServerPort
     private int port;
 
+    private TestRestTemplate testRestTemplate = new TestRestTemplate();
+    private HttpHeaders httpHeaders = new HttpHeaders();
+
+    private String getBaseUrl() {
+        return "http://localhost:" + port;
+    }
+
+    @BeforeEach
+    public void before() {
+        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+    }
+
+    private String getUrlForQuestion(String id) {
+        return getBaseUrl() + "/surveys/Survey1/questions/" + id;
+    }
+
+    private String getUrlForSurveyQuestions() {
+        return getBaseUrl() + "/surveys/Survey1/questions";
+    }
+
     @Test
     public void testRetrieveQuestion() {
         System.out.println("PORTPORT" + port);
 
-        String url = "http://localhost:" + port + "/surveys/Survey1/questions/Question1";
-        TestRestTemplate testRestTemplate = new TestRestTemplate();
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+        String url = getUrlForQuestion("Question1");
         HttpEntity httpEntity = new HttpEntity<String>(null, httpHeaders);
         ResponseEntity<String> response = testRestTemplate.exchange(
                 url,
@@ -46,6 +66,28 @@ public class SurveyControllerIT {
         } catch (Exception ex) {
             System.out.println("JSONAssert through exception: " + ex);
         }
+
+    }
+
+    @Test
+    public void testAddQuestion() {
+
+        Question question =  new Question("x",
+                "Most populous island in the world", "Java", Arrays.asList(
+                "Java", "Great Britain", "Honshu", "Madagascar"));
+
+        String url = getUrlForSurveyQuestions();
+        HttpEntity httpEntity = new HttpEntity<Question>(question, httpHeaders);
+        ResponseEntity<String> response = testRestTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                httpEntity,
+                String.class
+        );
+
+        String actual = response.getHeaders().get(HttpHeaders.LOCATION).get(0);
+        System.out.println(actual);
+        assert(actual.contains("/surveys/Survey1/questions"));
 
     }
 }
